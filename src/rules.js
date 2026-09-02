@@ -65,6 +65,8 @@ export function playMove(state, startIdx){
   const lastWasTuzduk = tuzduk[0] === lastPos || tuzduk[1] === lastPos;
   let captureInfo = null;
 
+
+  
   if(!lastWasTuzduk && ownerOf(lastPos) === opponent){
     const count = pits[lastPos];
     if(count > 0 && count % 2 === 0){
