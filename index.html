@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тогуз Коргоол</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Bitter:wght@600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#d4af37;
+    --gold-dim:#a5822a;
+    --red:#b5292f;
+    --cream:#f2e6cc;
+    --teal:#2f8f89;
+    --teal-light:#57c2b8;
+    --font-display:'Cinzel', Georgia, serif;
+    --font-numeric:'Bitter', Georgia, serif;
+    --font-body:'Nunito', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, #3a2c1c 0%, transparent 55%),
+      radial-gradient(ellipse 100% 90% at 50% 110%, #1a120a 0%, transparent 60%),
+      linear-gradient(160deg, #241a2a 0%, #1c1420 30%, #140f14 60%, #0b090c 100%);
+    font-family: var(--font-body);
+    color:var(--cream);
+    overflow:hidden;
+    -webkit-user-select:none; user-select:none;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 26px);
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0; z-index:2; pointer-events:none;
+    box-shadow: inset 0 0 220px rgba(0,0,0,0.65);
+  }
+  #pixi-container{position:fixed; inset:0; z-index:0;}
+  #pixi-container canvas{display:block; width:100%; height:100%; touch-action:none;}
+
+  #header{
+    position:fixed; top:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:center;
+    gap:16px;
+    padding:16px 10px 8px;
+    pointer-events:none;
+    z-index:5;
+    background:linear-gradient(to bottom, rgba(11,9,12,0.9), rgba(11,9,12,0));
+  }
+  .tunduk{
+    width:28px; height:28px;
+    border-radius:50%;
+    border:2px solid var(--gold);
+    position:relative;
+    flex-shrink:0;
+    opacity:0.9;
+  }
+  .tunduk::before, .tunduk::after{
+    content:"";
+    position:absolute; inset:5px;
+    border:1.5px solid var(--gold);
+    border-radius:50%;
+  }
+  .tunduk::after{inset:10px;}
+  #title{
+    font-family: var(--font-display);
+    font-size: clamp(21px,4vw,32px);
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--cream);
+    text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 0 30px rgba(212,175,55,0.15);
+    font-weight:700;
+  }
+  #subtitle{
+    position:fixed; top:52px; left:0; right:0; text-align:center;
+    font-family: var(--font-body);
+    font-size:10px; letter-spacing:4px; text-transform:uppercase;
+    font-weight:600;
+    color:var(--teal-light); opacity:0.7; z-index:5; pointer-events:none;
+  }
+
+  .score-panel{
+    position:fixed; top:84px;
+    width:172px;
+    padding:11px 14px;
+    border-radius:12px;
+    box-shadow:0 10px 28px rgba(0,0,0,0.5);
+    z-index:5;
+    transition:box-shadow .3s, border-color .3s, transform .2s;
+    border:1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(2px);
+  }
+  #panel-p1{left:14px; background:linear-gradient(160deg, #262019, #120e0a); }
+  #panel-p2{right:14px; background:linear-gradient(160deg, #ece4cc, #cfc4a2); color:#221c12;}
+  .score-panel.active{ transform:translateY(-2px); border-color:var(--teal-light); box-shadow:0 0 0 2px rgba(87,194,184,0.4), 0 10px 28px rgba(0,0,0,0.55);}
+  .p-name{font-family:var(--font-body); font-size:10.5px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:4px; opacity:0.7;}
+  #panel-p1 .p-name{color:var(--teal-light);}
+  #panel-p2 .p-name{color:#3a6d68;}
+  .p-score{font-family:var(--font-numeric); font-size:26px; font-weight:800; line-height:1; letter-spacing:0px;}
+  .p-score span{font-family:var(--font-body); font-size:12px; opacity:0.5; font-weight:600;}
+  .p-tuzduk{font-family:var(--font-body); font-size:10px; margin-top:6px; min-height:13px; opacity:0.8; font-weight:600;}
+
+  #turn-banner{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    padding:10px 26px;
+    background:rgba(20,16,14,0.88);
+    border:1px solid rgba(87,194,184,0.35);
+    border-radius:30px;
+    font-family:var(--font-body);
+    font-size:13px; letter-spacing:0.3px; font-weight:600;
+    z-index:5;
+    text-align:center;
+    min-width:250px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  }
+  #turn-banner b{color:var(--teal-light); font-weight:800;}
+
+  #restart, #mp-toggle{
+    position:fixed; top:14px;
+    background:rgba(20,16,14,0.55);
+    padding:8px 15px;
+    border-radius:20px;
+    font-family:var(--font-body); font-size:11px; font-weight:700; letter-spacing:0.5px;
+    cursor:pointer;
+    z-index:6;
+    transition:.2s;
+    backdrop-filter: blur(3px);
+  }
+  #restart{ right:14px; border:1px solid rgba(242,230,204,0.3); color:var(--cream); }
+  #restart:hover{background:rgba(87,194,184,0.15); border-color:var(--teal-light);}
+
+  #mp-toggle{ left:14px; border:1px solid rgba(87,194,184,0.45); color:var(--teal-light); }
+  #mp-toggle:hover{background:rgba(87,194,184,0.15);}
+  #mp-toggle.linked{border-color:var(--gold); color:var(--gold);}
+
+  #mp-modal{
+    position:fixed; inset:0; z-index:25;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(8,6,4,0.75);
+    opacity:0; pointer-events:none;
+    transition:opacity .3s;
+  }
+  #mp-modal.show{opacity:1; pointer-events:auto;}
+  #mp-box{
+    background:linear-gradient(160deg, #2b2320, #16110f);
+    border:1px solid var(--teal-light);
+    border-radius:16px;
+    padding:28px 30px;
+    width:300px;
+    max-width:90vw;
+    box-shadow:0 24px 70px rgba(0,0,0,0.65);
+  }
+  #mp-box h3{margin:0 0 6px; font-family:var(--font-display); color:var(--teal-light); font-size:20px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;}
+  #mp-box p.mp-hint{margin:0 0 16px; font-family:var(--font-body); font-size:11.5px; opacity:0.6; line-height:1.5;}
+  #mp-box label{display:block; font-family:var(--font-body); font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; opacity:0.65; margin:12px 0 6px;}
+  #mp-box input{
+    width:100%; padding:10px 12px; border-radius:9px;
+    border:1px solid rgba(255,255,255,0.16);
+    background:rgba(0,0,0,0.35); color:var(--cream);
+    font-family:var(--font-body); font-size:13px;
+  }
+  .mp-row{display:flex; gap:10px; margin-top:18px;}
+  .mp-row button{
+    flex:1;
+    background:var(--teal); color:#08201e; border:none;
+    padding:10px 10px; border-radius:20px; font-family:var(--font-body);
+    font-size:12px; letter-spacing:0.5px; cursor:pointer; font-weight:700;
+    transition:.2s;
+  }
+  .mp-row button:hover{background:var(--teal-light);}
+  .mp-row button.secondary{background:transparent; border:1px solid rgba(242,230,204,0.3); color:var(--cream); font-weight:600;}
+  .mp-row button.secondary:hover{background:rgba(255,255,255,0.06);}
+  #mp-status{margin-top:14px; font-family:var(--font-body); font-size:11.5px; min-height:16px; color:var(--gold); line-height:1.5; font-weight:500;}
+  #mp-close{
+    margin-top:14px; width:100%; background:transparent; border:1px solid rgba(255,255,255,0.14);
+    color:var(--cream); padding:9px; border-radius:20px; font-family:var(--font-body); font-size:11px; font-weight:600; cursor:pointer;
+    transition:.2s;
+  }
+  #mp-close:hover{background:rgba(255,255,255,0.06);}
+
+  #hint{
+    position:fixed; bottom:2px; left:0; right:0; text-align:center;
+    font-family:var(--font-body);
+    font-size:10px; opacity:0.4; letter-spacing:1px; font-weight:500; z-index:5; pointer-events:none;
+  }
+
+  #overlay-msg{
+    position:fixed; inset:0; z-index:20;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(6,5,4,0.78);
+    opacity:0; pointer-events:none;
+    transition:opacity .4s;
+  }
+  #overlay-msg.show{opacity:1; pointer-events:auto;}
+  #overlay-box{
+    background:linear-gradient(160deg, #2c241a, #18130e);
+    border:1px solid var(--teal-light);
+    border-radius:16px;
+    padding:36px 46px;
+    text-align:center;
+    max-width:340px;
+    box-shadow:0 24px 70px rgba(0,0,0,0.65);
+  }
+  #overlay-box h2{margin:0 0 12px; font-family:var(--font-display); color:var(--teal-light); font-size:26px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;}
+  #overlay-box p{margin:0 0 20px; font-family:var(--font-body); font-size:13.5px; opacity:0.85; line-height:1.6; font-weight:500;}
+  #overlay-box button{
+    background:var(--red); color:#fff5e6; border:none;
+    padding:10px 26px; border-radius:24px; font-family:var(--font-body);
+    font-size:12px; letter-spacing:0.8px; font-weight:700; cursor:pointer;
+    transition:.2s;
+  }
+  #overlay-box button:hover{background:#c93840;}
+</style>
+</head>
+<body>
+
+<div id="pixi-container"></div>
+
+<div id="header"><div class="tunduk"></div><div id="title">Тогуз Коргоол</div><div class="tunduk"></div></div>
+<div id="subtitle">кыргыз улуттук оюну</div>
+
+<div class="score-panel" id="panel-p1">
+  <div class="p-name">Ойунчу 1</div>
+  <div class="p-score" id="score-p1">0<span>/162</span></div>
+  <div class="p-tuzduk" id="tuzduk-p1"></div>
+</div>
+<div class="score-panel" id="panel-p2">
+  <div class="p-name">Ойунчу 2</div>
+  <div class="p-score" id="score-p2">0<span>/162</span></div>
+  <div class="p-tuzduk" id="tuzduk-p2"></div>
+</div>
+
+<button id="mp-toggle">🌐 Играть онлайн</button>
+<button id="restart">Жаңы оюн ↺</button>
+<div id="turn-banner">Жүрөт: <b id="turn-name">Ойунчу 1</b></div>
+<div id="hint">Лункаңызды кармап тартыңыз да коё бериңиз</div>
+
+<div id="mp-modal">
+  <div id="mp-box">
+    <h3>Игра по сети</h3>
+    <p class="mp-hint">Один создаёт комнату и отправляет код другу, второй вводит тот же код и адрес сервера.</p>
+    <label>Адрес сервера (wss://...)</label>
+    <input id="mp-server" placeholder="wss://ваш-сервер.example.com" />
+    <label>Код комнаты</label>
+    <input id="mp-room" placeholder="напр. ABCD" maxlength="12" />
+    <div class="mp-row">
+      <button id="mp-create">Создать</button>
+      <button id="mp-join" class="secondary">Войти</button>
+    </div>
+    <div id="mp-status"></div>
+    <button id="mp-close">Закрыть</button>
+  </div>
+</div>
+
+<div id="overlay-msg">
+  <div id="overlay-box">
+    <h2 id="overlay-title">Оюн бүттү</h2>
+    <p id="overlay-text"></p>
+    <button id="restart-btn-2">Кайра баштоо</button>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
